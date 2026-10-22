@@ -1,6 +1,6 @@
 ---
 name: openagent-run-agent
-description: Use when the user or an upstream business Skill requests execution, continuation, or stopping based on a trusted Agent and an explicit executable prompt, or when openagent-search-agent supplies trusted selection authorization. Also handle a specified agent_id, optional name, and missing business requirement handed off by openagent-guide-agent. Handle a single invocation, Sessions, stopping, insufficient balance, and delivery failures locally.
+description: Before loading this Skill in Hermes, call skills_list(category="plugin") and pass the matching entry's full name unchanged to skill_view. Keep its namespace; do not add `plugin:` or use the bare directory name. Use when the user or an upstream business Skill requests execution, continuation, or stopping based on a trusted Agent and an explicit executable prompt, or when openagent-search-agent supplies trusted selection authorization. Also handle a specified agent_id, optional name, and missing business requirement handed off by openagent-guide-agent. Handle a single invocation, Sessions, stopping, insufficient balance, and delivery failures locally.
 ---
 
 # OpenAgent Agent Execution
@@ -37,6 +37,8 @@ OpenAgent: <stage name> — <brief action phrase>
 - `Output` and `Next` describe internal data handoff and workflow transitions; do not display these labels to the user.
 
 ## Workflow
+
+For any OpenAgent Skill handoff or linked `SKILL.md` read, obtain the target's full `name` from `skills_list(category="plugin")` and pass it unchanged to `skill_view(name=...)`. Reuse an exact entry already returned in this conversation. Never reconstruct a name from the category or directory, and do not try guessed variants if no entry matches.
 
 On an explicit OpenAgent authentication failure, follow [runtime sign-in](../openagent-login/runtime-sign-in.md) before other error, fallback, or completion rules. Otherwise keep this workflow unchanged. A user-requested retry of an unfinished sign-in goes there too.
 

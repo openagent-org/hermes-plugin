@@ -1,6 +1,6 @@
 ---
 name: openagent-query-account
-description: Use when the user asks for the currently signed-in user's OpenAgent balance, account information, Credits, or spending this month; not for top-ups, refunds, subscription changes, or accounts on other platforms.
+description: Before loading this Skill in Hermes, call skills_list(category="plugin") and pass the matching entry's full name unchanged to skill_view. Keep its namespace; do not add `plugin:` or use the bare directory name. Use when the user asks for the currently signed-in user's OpenAgent balance, account information, Credits, or spending this month; not for top-ups, refunds, subscription changes, or accounts on other platforms.
 ---
 
 # OpenAgent Account Query
@@ -30,6 +30,8 @@ OpenAgent: Account Query — <brief action phrase>
 Keep the stage name in English and describe the current action in the user's language. Do not repeat the update or include results in it; deliver the account result or trusted failure explanation separately.
 
 ## Workflow
+
+For any OpenAgent Skill handoff or linked `SKILL.md` read, obtain the target's full `name` from `skills_list(category="plugin")` and pass it unchanged to `skill_view(name=...)`. Reuse an exact entry already returned in this conversation. Never reconstruct a name from the category or directory, and do not try guessed variants if no entry matches.
 
 Apply [Hermes Tool Result Mapping](../openagent-run-agent/SKILL.md#hermes-tool-result-mapping) before interpreting OpenAgent tool results.
 

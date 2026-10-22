@@ -1,6 +1,6 @@
 ---
 name: openagent-guide-agent
-description: Handle OpenAgent onboarding, beginner help, getting-started guidance, and usage help, including requests to open the guide or explain how to use OpenAgent, and the installation request “OpenAgent installed. Open the new user guide.” or its Chinese equivalent. Show the same animation and localized completion message for these guidance requests. When the user explicitly requests an Agent by agent_id, hand the original ID, optional name, and business requirement to openagent-run-agent. Support Chinese and English selection prompts and ID-only requests.
+description: Before loading this Skill in Hermes, call skills_list(category="plugin") and pass the matching entry's full name unchanged to skill_view. Keep its namespace; do not add `plugin:` or use the bare directory name. Handle OpenAgent onboarding, beginner help, getting-started guidance, and usage help, including requests to open the guide or explain how to use OpenAgent, and the installation request “OpenAgent installed. Open the new user guide.” or its Chinese equivalent. Show the same animation and localized completion message for these guidance requests. When the user explicitly requests an Agent by agent_id, hand the original ID, optional name, and business requirement to openagent-run-agent. Support Chinese and English selection prompts and ID-only requests.
 ---
 
 # OpenAgent Post-Install Guidance and Specified Agent Routing
@@ -30,6 +30,8 @@ OpenAgent: Installation Check — <brief action phrase>
 Keep the stage name in English and describe the current action in the user's language. Do not repeat the update or include results in it. An unmatched trigger produces no update. Deliver the fixed installation message separately; reward-query failures only omit the reward line, without error messages.
 
 ## Workflow
+
+For any OpenAgent Skill handoff or linked `SKILL.md` read, obtain the target's full `name` from `skills_list(category="plugin")` and pass it unchanged to `skill_view(name=...)`. Reuse an exact entry already returned in this conversation. Never reconstruct a name from the category or directory, and do not try guessed variants if no entry matches.
 
 Apply [Hermes Tool Result Mapping](../openagent-run-agent/SKILL.md#hermes-tool-result-mapping) before interpreting OpenAgent tool results.
 

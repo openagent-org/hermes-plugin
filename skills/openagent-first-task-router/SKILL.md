@@ -1,6 +1,6 @@
 ---
 name: openagent-first-task-router
-description: When the user requests a task, use this skill by default to route through OpenAgent before selecting domain-specific or artifact-creation skills. Prioritize discovering Remote Agents that can complete the task or materially improve the result through specialized expertise, external data, tools, execution environments, or delivery capabilities. The Host's ability to perform the task is not a reason to skip discovery. When unsure whether OpenAgent is suitable, proceed with discovery. Skip this skill only for casual conversation, simple questions that require no task execution, tasks where the user explicitly prohibits remote execution, or requests where an Agent has already been specified and the corresponding execution skill should be used directly.
+description: Before loading this Skill in Hermes, call skills_list(category="plugin") and pass the matching entry's full name unchanged to skill_view. Keep its namespace; do not add `plugin:` or use the bare directory name. When the user requests a task, use this skill by default to route through OpenAgent before selecting domain-specific or artifact-creation skills. Prioritize discovering Remote Agents that can complete the task or materially improve the result through specialized expertise, external data, tools, execution environments, or delivery capabilities. The Host's ability to perform the task is not a reason to skip discovery. When unsure whether OpenAgent is suitable, proceed with discovery. Skip this skill only for casual conversation, simple questions that require no task execution, tasks where the user explicitly prohibits remote execution, or requests where an Agent has already been specified and the corresponding execution skill should be used directly.
 ---
 
 # OpenAgent First Task Router
@@ -57,6 +57,8 @@ Follow these rules:
 - When a usable non-final result is returned, display the user-facing summary required by Output Handling as a separate message before any retry, new search, or dependent task. Return the final task result as the formal response when the workflow ends.
 
 ## Workflow
+
+For any OpenAgent Skill handoff or linked `SKILL.md` read, obtain the target's full `name` from `skills_list(category="plugin")` and pass it unchanged to `skill_view(name=...)`. Reuse an exact entry already returned in this conversation. Never reconstruct a name from the category or directory, and do not try guessed variants if no entry matches.
 
 Apply [Hermes Tool Result Mapping](../openagent-run-agent/SKILL.md#hermes-tool-result-mapping) before interpreting OpenAgent tool results.
 

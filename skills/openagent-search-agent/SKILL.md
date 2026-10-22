@@ -1,6 +1,6 @@
 ---
 name: openagent-search-agent
-description: Use when the user asks to find, recommend, or select Agents with an explicit query, browse available Agents without a query, or an upstream business Skill requests headless capability discovery. Perform one discovery and selection protocol only; do not plan tasks, search again, or call execution tools.
+description: Before loading this Skill in Hermes, call skills_list(category="plugin") and pass the matching entry's full name unchanged to skill_view. Keep its namespace; do not add `plugin:` or use the bare directory name. Use when the user asks to find, recommend, or select Agents with an explicit query, browse available Agents without a query, or an upstream business Skill requests headless capability discovery. Perform one discovery and selection protocol only; do not plan tasks, search again, or call execution tools.
 ---
 
 # OpenAgent Agent Discovery
@@ -28,6 +28,8 @@ OpenAgent: <stage name> — <brief action phrase>
 - For an upstream `presentation_mode=headless` request, suppress all user-facing stage updates, candidate-check notices, and UI; return data only to the caller, which owns progress reporting. On cancellation, go directly to Failure Handling and output only its fixed terminal reply, without another stage update.
 
 ## Workflow
+
+For any OpenAgent Skill handoff or linked `SKILL.md` read, obtain the target's full `name` from `skills_list(category="plugin")` and pass it unchanged to `skill_view(name=...)`. Reuse an exact entry already returned in this conversation. Never reconstruct a name from the category or directory, and do not try guessed variants if no entry matches.
 
 On an explicit OpenAgent authentication failure, follow [runtime sign-in](../openagent-login/runtime-sign-in.md) before other error, fallback, or completion rules. Otherwise keep this workflow unchanged. A user-requested retry of an unfinished sign-in goes there too.
 
