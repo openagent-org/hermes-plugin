@@ -13,20 +13,21 @@ import subprocess
 import sys
 
 
-SKILLS = (
-    "openagent-first-task-router", "openagent-guide-agent", "openagent-search-agent",
-    "openagent-run-agent", "openagent-query-account",
-)
-FILES = {
+RELEASE_0_1_0_FILES = {
     "README.md", "INSTALL.md", "INSTALL.en.md", "plugin.json", "install.py", "uninstall.py",
-    *(f"skills/{name}/SKILL.md" for name in SKILLS),
+    "skills/openagent-first-task-router/SKILL.md",
+    "skills/openagent-guide-agent/SKILL.md",
+    "skills/openagent-search-agent/SKILL.md",
+    "skills/openagent-run-agent/SKILL.md",
+    "skills/openagent-query-account/SKILL.md",
     "skills/openagent-run-agent/scripts/cos_upload.cjs",
     "skills/openagent-run-agent/scripts/cos_sdk.cjs.gz",
     "skills/openagent-run-agent/scripts/cos_sdk.lock.json",
     "skills/openagent-first-task-router/references/result-validation-and-delivery.md",
     "skills/openagent-login/runtime-sign-in.md",
 }
-LEGACY_FILES = (FILES - {
+FILES = RELEASE_0_1_0_FILES | {"desktop_onboarding.py", "desktop-onboarding.js"}
+LEGACY_FILES = (RELEASE_0_1_0_FILES - {
     "INSTALL.en.md", "uninstall.py", "skills/openagent-first-task-router/references/result-validation-and-delivery.md",
     "skills/openagent-login/runtime-sign-in.md",
 }) | {"skills/openagent-run-agent/references/hermes-runtime.md"}
@@ -55,7 +56,7 @@ def check_plugin(target: Path) -> bool:
         data = json.loads(receipt.read_text(encoding="utf-8"))
         files = data["files"]
         if (data.get("format") != "openagent-hermes-install-v1" or not isinstance(files, dict)
-                or set(files) not in (LEGACY_FILES, FILES)):
+                or set(files) not in (LEGACY_FILES, RELEASE_0_1_0_FILES, FILES)):
             raise ValueError()
     except (KeyError, TypeError, ValueError):
         raise ValueError("安装回执无效或文件清单不符，停止卸载") from None

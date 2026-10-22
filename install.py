@@ -14,6 +14,8 @@ import subprocess
 import sys
 import tempfile
 
+from desktop_onboarding import verify_desktop
+
 
 SKILLS = (
     "openagent-first-task-router", "openagent-guide-agent", "openagent-search-agent",
@@ -21,6 +23,7 @@ SKILLS = (
 )
 FILES = (
     "README.md", "INSTALL.md", "INSTALL.en.md", "plugin.json", "install.py", "uninstall.py",
+    "desktop_onboarding.py", "desktop-onboarding.js",
     *(f"skills/{name}/SKILL.md" for name in SKILLS),
     "skills/openagent-run-agent/scripts/cos_upload.cjs",
     "skills/openagent-run-agent/scripts/cos_sdk.cjs.gz",
@@ -120,9 +123,15 @@ def copy_payload(target: Path, payload: dict[str, bytes]) -> None:
         staged.rename(target)
 
 
+def profile_args(env: dict) -> list[str]:
+    # 根目录可能被 active_profile 重定向；与卸载器一样固定实际目标。
+    return [] if Path(env["HERMES_HOME"]).parent.name == "profiles" else ["-p", "default"]
+
+
 def command(hermes: str, args: list[str], env: dict, *, capture: bool = True):
     """配置输出只在内存解析；错误不回显未知配置或认证材料。"""
-    return subprocess.run([hermes, *args], env=env, text=True, capture_output=capture, check=False)
+    return subprocess.run([hermes, *profile_args(env), *args], env=env,
+                          text=True, capture_output=capture, check=False)
 
 
 def read_mcp(hermes: str, env: dict):
@@ -184,7 +193,7 @@ def verify_session(hermes: str, env: dict) -> None:
     """新建一次独立会话验收；原始账号和模型输出只在内存解析。"""
     print("正在新 Hermes 会话中验证 OpenAgent 账号连接，请等待同一个安装进程。", flush=True)
     # 冷启动按 MCP 连接名过滤；mcp-openagent 是连接后注册的内部工具组名。
-    args = [hermes, "chat", "--oneshot", "--format", "stream-json",
+    args = [hermes, *profile_args(env), "chat", "--oneshot", "--format", "stream-json",
             "--toolsets", "skills,openagent", "--max-turns", "8", "--run-budget", "180",
             "-q", "OpenAgent 已安装，打开新用户引导"]
     try:
@@ -199,10 +208,16 @@ def verify_session(hermes: str, env: dict) -> None:
     if result.returncode or not parse_acceptance(result.stdout):
         raise RuntimeError("新会话未取得完整的账号成功证据；安装文件已保留，账号连接尚未确认，不自动重试")
     print("OpenAgent 安装验收通过：新 Hermes 会话已真实调用账号工具，success=true。")
-    print("可以开始使用 OpenAgent；首次使用的 Desktop 窗口请新建对话以加载连接。")
+    print("可以在 Hermes CLI 中开始使用 OpenAgent。")
 
 
-def install(source: Path, home: Path, hermes: str, *, skip_connect: bool = False) -> None:
+def install(source: Path, home: Path, hermes: str, *, skip_connect: bool = False, client: str = "auto") -> None:
+    if client == "auto":
+        is_desktop = (os.environ.get("HERMES_SESSION_SOURCE") == "desktop"
+                      or os.environ.get("HERMES_DESKTOP_TERMINAL") == "1")
+        client = "desktop" if is_desktop else "cli"
+    if client not in {"desktop", "cli"}:
+        raise ValueError("不支持的 Hermes 客户端")
     if not skip_connect and not sys.stdin.isatty():
         raise RuntimeError("完整安装需要交互式终端；Hermes terminal 请使用 background=true、pty=true，勿用管道或重定向 stdin")
     source, home = source.resolve(), home.expanduser().resolve()
@@ -226,7 +241,10 @@ def install(source: Path, home: Path, hermes: str, *, skip_connect: bool = False
         return
     print("开始 Hermes 原生连接测试；如需授权，请完成 Hermes 打开的页面，勿重复发起登录。", flush=True)
     run_required(hermes, ["mcp", "test", "openagent"], env, capture=False)
-    verify_session(hermes, env)
+    if client == "desktop":
+        verify_desktop(target, home)
+    else:
+        verify_session(hermes, env)
 
 
 def main(argv=None) -> int:
@@ -235,12 +253,15 @@ def main(argv=None) -> int:
                         default=Path(os.environ.get("HERMES_HOME") or "~/.hermes"),
                         help="目标 Hermes 配置目录；默认沿用 HERMES_HOME 或 ~/.hermes")
     parser.add_argument("--skip-connect", action="store_true", help="仅安装并配置，不验证 OAuth 和 MCP 连接")
+    parser.add_argument("--client", choices=("auto", "desktop", "cli"), default="auto",
+                        help="验收客户端；自动识别 Desktop terminal，外部终端安装 Desktop 时指定 desktop")
     args = parser.parse_args(argv)
     try:
         hermes = shutil.which("hermes")
         if not hermes:
             raise RuntimeError("未找到 hermes 命令，请先安装并配置 Hermes")
-        install(Path(__file__).resolve().parent, args.hermes_home, hermes, skip_connect=args.skip_connect)
+        install(Path(__file__).resolve().parent, args.hermes_home, hermes,
+                skip_connect=args.skip_connect, client=args.client)
         return 0
     except (OSError, ValueError, RuntimeError) as exc:
         print(f"安装停止：{exc}", file=sys.stderr)

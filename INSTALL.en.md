@@ -34,6 +34,8 @@ First tell the user: "I will install OpenAgent. If Hermes opens an authorization
 
 Quote the installation path correctly if it contains spaces. Both `background=true` and `pty=true` are required. Do not run the full installation through an ordinary non-interactive terminal, a pipe, or stdin redirection. Initial OAuth requires a TTY; the installer stops before making changes if no TTY is available. A user running the installation themselves can execute the same Python command directly in a local interactive terminal.
 
+`--client auto` is the default: it selects Desktop verification when `HERMES_SESSION_SOURCE=desktop` or `HERMES_DESKTOP_TERMINAL=1`, and CLI verification otherwise. Use `--client desktop` or `--client cli` to select explicitly. When installing for Hermes Desktop from an external terminal, append `--client desktop` to the Python command above and keep the target Desktop running. Verification in an ordinary terminal's CLI session does not verify a new Desktop conversation.
+
 Retain the `session_id` returned by the tool. Do not start a second installer just because one terminal call has returned.
 
 ## 3. Wait for the same process to complete authorization and verification
@@ -46,13 +48,18 @@ Use `process_manage` with `poll` to inspect the status, or `wait` for at most 60
 
 Hermes's native MCP automatically opens the authorization flow, and the user completes it on the page. Give brief progress updates while waiting. Do not run another login, installer, or additional `mcp test`; do not open an authorization URL yourself or copy authorization URLs or authentication materials into replies.
 
-After the connection check passes, the installer creates one new Hermes CLI session, sends the exact full prompt "OpenAgent 已安装，打开新用户引导", reads the installed Skill, and verifies the account tool. Keep this prompt in Chinese exactly as written. The child session has a total limit of 600 seconds, including MCP startup, model processing, and normal shutdown. Hermes's `--run-budget` is a soft wrap-up hint and cannot replace this total limit. The child session does not read this installation guide, recursively install, or automatically execute example tasks. Verification retains only a structured success marker for the outer process; it does not output the account balance, internal identifiers, or raw model responses.
+After the connection check passes, the installer creates one new session in the selected client, sends the exact full prompt "OpenAgent 已安装，打开新用户引导", reads the installed Skill, and verifies the account tool. Keep this prompt in Chinese exactly as written:
+
+- Desktop: use the official Hermes disk plugin SDK to open a new conversation visible to the user and send the prompt there. The installer verifies the account call and completion in that actual conversation; it does not substitute a background CLI session. After verification ends, it removes this temporary plugin and preserves the new conversation for continued use.
+- CLI: create an independent Hermes CLI child session for the same guidance and account verification. CLI success does not mean a new Desktop conversation was created.
+
+New-session verification has a total limit of 600 seconds, including session creation, MCP startup, model processing, and normal shutdown. Hermes CLI's `--run-budget` is a soft wrap-up hint and cannot replace this total limit. The new session does not read this installation guide, recursively install, or automatically execute example tasks. The outer installation process receives only the verification status and does not print the account balance, internal identifiers, or raw conversation content. A Desktop failure does not automatically fall back to CLI verification.
 
 ## 4. Report the final state
 
 Tell the user that installation and account connection verification succeeded only if the same process exits with code 0 and its output contains "OpenAgent 安装验收通过". This marker requires the new session to actually call `openagent_account_credits` once, receive a strict `success=true`, and end normally. A plugin list, tool list, successful OAuth, or a model saying "installation succeeded" cannot independently replace these requirements.
 
-After completion, tell the user: "OpenAgent is installed and has passed account verification in a new session. You can start using it. If you are still in the original Desktop conversation, start a new conversation to load the connection." This is a usage tip; the installer has already completed installation verification.
+After Desktop completion, tell the user: "OpenAgent is installed and has passed account verification in the newly opened Desktop conversation. You can continue using it there." After CLI completion, tell the user: "OpenAgent is installed and has passed account verification in an independent new CLI session. You can start using it." Do not describe a CLI result as a Desktop navigation, or leave Desktop new-conversation verification for the user to complete manually.
 
 If the process fails, is cancelled, times out, or has an unknown state, preserve the current state and report the specific failed stage. Do not automatically replay installation, the account call, or OAuth. Unconfirmed verification alone does not prove that OAuth has expired or the model API is faulty; do not infer the cause from unrelated historical logs. Use `hermes mcp login openagent` only when the user explicitly requests signing in again. It resets the connection's previous authentication and must not be used as a read-only check. If the model in the new session is unavailable or the account result is unconfirmed, report only that the installation files have been written and functional verification has not passed.
 
@@ -66,9 +73,11 @@ The installer copies a fixed file list into `plugins/openagent` under the curren
 - Connection wait: 315 seconds, allowing time for initial browser authorization.
 - Tool wait: 1800 seconds (the native `timeout` field), covering selection waits and synchronous execution. Do not replay a task if the timeout ends without a trusted final state.
 
-Other plugins, MCP connections, and model configuration are preserved. Stop if an existing directory with the same name lacks this installer's receipt, installed files have been modified, or an MCP connection with the same name does not match. Do not delete or overwrite content from unknown sources. Identical payloads of the same version can be checked again. This initial release does not automatically overwrite a different version; before updating, inspect local modifications and use the uninstall entry point below to remove the old version.
+Other plugins, MCP connections, and model configuration are preserved. Stop if an existing directory with the same name lacks this installer's receipt, installed files have been modified, or an MCP connection with the same name does not match. Do not delete or overwrite content from unknown sources. Identical payloads of the same version can be checked again. The installer does not automatically overwrite a different version; before updating, inspect local modifications and use the uninstall entry point below to remove the old version.
 
 `--skip-connect` installs only files and configuration, skipping OAuth, network access, and new-session verification. It must not be reported as successful installation verification. `--hermes-home <directory>` can target an isolated environment with a configured model; both the connection and the new session always use that directory. Replace `<directory>` with the target directory.
+
+Desktop verification temporarily uses the official disk plugin entry point to create a new conversation. Installation removes this temporary plugin afterward without modifying or deleting the user's other Desktop plugins or conversations. The installation target must belong to the running Desktop app's local configuration root. Verification uses its matching local profile; if Desktop does not load this temporary plugin, verification stops.
 
 New-session verification uses the current Hermes model and therefore makes a normal model call. It does not submit a paid Agent task. Tools use the `mcp__openagent__` prefix; Skills use host-discovered names without hardcoded namespaces. Browsing or selecting an Agent does not authorize task execution.
 

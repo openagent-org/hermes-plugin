@@ -8,7 +8,7 @@ Ask Hermes to read the installation guide in [English](./INSTALL.en.md) or [Chin
 
 Supports Hermes Agent CLI and Hermes Desktop with a local terminal. Installation requires a configured Hermes, Git, and Python 3. File uploads require Node.js 20 or later.
 
-Complete the browser sign-in when prompted. The installer verifies the connection in a new Hermes session.
+Complete the browser sign-in when prompted. In Desktop, the installer opens a visible new conversation and verifies the account there. In CLI, it verifies the account in an independent new CLI session. When installing for Desktop from an external terminal, add `--client desktop` and keep Hermes Desktop running.
 
 ## Use
 
