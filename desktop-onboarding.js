@@ -141,12 +141,10 @@ export default {
       try {
         const draft = await host.composer.getDraft('new');
         if (stopped || disposed) return;
-        if (!freshDraft() || (draft !== null && draft !== '')) return fail('session_changed');
-        const mounted = await host.composer.setDraft('new', config.prompt);
-        if (stopped || disposed || !mounted) return;
-        const verifiedDraft = await host.composer.getDraft('new');
-        if (stopped || disposed) return;
-        if (!freshDraft() || verifiedDraft !== config.prompt) return fail('session_changed');
+        if (!freshDraft()) return fail('session_changed');
+        if (draft === null) return;
+        if (draft !== '') return fail('session_changed');
+        // SDK 的外部提交会保留草稿；不预填固定提示，也不清空用户随后输入的内容。
         // true 仅说明原生可见输入框接收了提交；之后只等本次事件，绝不再次发送。
         submitted = true;
         cancelPoll();
@@ -164,7 +162,7 @@ export default {
       try {
         const required = ['activeSessionId', 'focusedSessionId', 'focusedStoredSessionId', 'profile', 'connectionId', 'gateway'];
         if (typeof host.newChat !== 'function' || typeof host.profileRoutes !== 'function'
-            || typeof host.composer?.getDraft !== 'function' || typeof host.composer?.setDraft !== 'function'
+            || typeof host.composer?.getDraft !== 'function'
             || typeof host.composer?.submit !== 'function'
             || required.some(key => typeof host.state?.[key]?.get !== 'function')) return fail('unsupported_host');
         const routes = (await host.profileRoutes()).filter(item => item.mode === 'local'
