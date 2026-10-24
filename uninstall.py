@@ -34,7 +34,7 @@ LEGACY_FILES = (RELEASE_0_1_0_FILES - {
 RECEIPT = ".openagent-hermes-install.json"
 CACHE = "skills/openagent-run-agent/scripts/.cos-sdk"
 MCP_KEY = "mcp_servers.openagent"
-MCP_URL = "https://oasn-ow.haimawan.com/mcp/v1/open-agent"
+MCP_URL = "https://openagent.org/mcp/v1/open-agent"
 OAUTH_FILES = ("openagent.json", "openagent.client.json", "openagent.meta.json", "openagent.cimd-off")
 ABSENT = object()
 

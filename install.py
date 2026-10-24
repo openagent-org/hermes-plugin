@@ -37,7 +37,7 @@ CACHE = "skills/openagent-run-agent/scripts/.cos-sdk"
 MCP_KEY = "mcp_servers.openagent"
 ABSENT = object()
 MCP_CONFIG = {
-    "url": "https://oasn-ow.haimawan.com/mcp/v1/open-agent",
+    "url": "https://openagent.org/mcp/v1/open-agent",
     "auth": "oauth",
     "enabled": True,
     "connect_timeout": 315,

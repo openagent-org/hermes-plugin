@@ -67,7 +67,7 @@ Desktop 完成后告知：“OpenAgent 已安装，并已在新打开的 Desktop
 
 安装器把固定清单复制到当前 Hermes 配置目录的 `plugins/openagent`，通过原生命令启用插件，并登记名为 `openagent` 的 MCP：
 
-- 地址：`https://oasn-ow.haimawan.com/mcp/v1/open-agent`。
+- 地址：`https://openagent.org/mcp/v1/open-agent`。
 - 认证：Hermes 原生 OAuth，凭据由 Hermes 管理。
 - 请求头：`X-OASN-MCP-OAuth: required`、`X-OASN-MCP-Content-Mode: text-compatible`。
 - 连接等待：315 秒，为首次浏览器授权留出时间。

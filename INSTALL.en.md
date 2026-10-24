@@ -67,7 +67,7 @@ If the process fails, is cancelled, times out, or has an unknown state, preserve
 
 The installer copies a fixed file list into `plugins/openagent` under the current Hermes configuration directory, enables the plugin through native commands, and registers an MCP connection named `openagent`:
 
-- Endpoint: `https://oasn-ow.haimawan.com/mcp/v1/open-agent`.
+- Endpoint: `https://openagent.org/mcp/v1/open-agent`.
 - Authentication: Hermes native OAuth, with credentials managed by Hermes.
 - Headers: `X-OASN-MCP-OAuth: required` and `X-OASN-MCP-Content-Mode: text-compatible`.
 - Connection wait: 315 seconds, allowing time for initial browser authorization.
