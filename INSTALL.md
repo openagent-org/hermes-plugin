@@ -69,7 +69,7 @@ Desktop 完成后告知：“OpenAgent 已安装，并已在新打开的 Desktop
 
 - 地址：`https://openagent.org/mcp/v1/open-agent`。
 - 认证：Hermes 原生 OAuth，凭据由 Hermes 管理。
-- 请求头：`X-OASN-MCP-OAuth: required`、`X-OASN-MCP-Content-Mode: text-compatible`。
+- 请求头：`X-OASN-MCP-OAuth: required`、`X-OASN-MCP-Content-Mode: text-compatible`、`X-OASN-Client-Source: hermes`。
 - 连接等待：315 秒，为首次浏览器授权留出时间。
 - 工具等待：1800 秒（原生 `timeout` 字段），覆盖选择等待和同步执行；到时无可信终态时不能重放任务。
 

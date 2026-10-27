@@ -69,7 +69,7 @@ The installer copies a fixed file list into `plugins/openagent` under the curren
 
 - Endpoint: `https://openagent.org/mcp/v1/open-agent`.
 - Authentication: Hermes native OAuth, with credentials managed by Hermes.
-- Headers: `X-OASN-MCP-OAuth: required` and `X-OASN-MCP-Content-Mode: text-compatible`.
+- Headers: `X-OASN-MCP-OAuth: required`, `X-OASN-MCP-Content-Mode: text-compatible`, `X-OASN-Client-Source: hermes`.
 - Connection wait: 315 seconds, allowing time for initial browser authorization.
 - Tool wait: 1800 seconds (the native `timeout` field), covering selection waits and synchronous execution. Do not replay a task if the timeout ends without a trusted final state.
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "openagent",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "在 Hermes 中发现和调用 OpenAgent，使用宿主原生 MCP OAuth 完成授权。",
   "author": {"name": "OpenAgent"},
   "homepage": "https://openagent.org",

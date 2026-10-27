@@ -44,6 +44,7 @@ MCP_CONFIG = {
     "timeout": 1800,
     "headers": {
         "X-OASN-MCP-OAuth": "required",
+        "X-OASN-Client-Source": "hermes",
         "X-OASN-MCP-Content-Mode": "text-compatible",
     },
 }
