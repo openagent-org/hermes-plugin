@@ -44,7 +44,7 @@ On an explicit OpenAgent authentication failure, follow [runtime sign-in](../ope
 
 1. In Request Validation, route by user intent: explicit stop requests enter Task Stopping; discovery or selection alone enters No Explicit Intent; only executable requirements enter Request Preparation.
 2. Request Preparation reuses or obtains Agent information under the rules below, organizes requirements, then prepares parameters and required attachments according to the trusted invocation mode. Do not submit execution when required input is missing or an attachment fails.
-3. Agent Execution waits for `openagent_progress` to return, then calls `openagent_run` once with the same key and locale. Execute this Run even if progress display fails.
+3. Agent Execution selects one progress display and runs the invocation once, following the display and failure rules below.
 4. Pass every returned Tool Result to Result Validation and Delivery for validation. Transport failures without a Tool Result enter Failure Handling directly. Return the complete result to the current caller and end. Do not automatically start subsequent business invocations.
 
 ### Loop Control
@@ -175,10 +175,10 @@ return original_attachment_and_resource_id(grant)
 
 Input is the complete parameters from Request Preparation. Emit the Agent Execution update before calling the progress and execution tools; describe the current invocation action without claiming that submission has completed. The stable `idempotency_key` must be valid and non-placeholder, and reused for the corresponding `openagent_progress` and `openagent_run`.
 
-When Hermes renders the progress card, it displays the exact `data.prompt` and `data.attachments` submitted to `openagent_run`. If card rendering is unavailable, use only the brief stage update. Do not send a separate prompt preview, fenced code block, or duplicate invocation data in the conversation.
+Choose one progress display per invocation. Prefer the default MCP Apps card only when the current Host explicitly supports it, omitting `display_mode`. Hermes currently lacks this support: pass `display_mode="browser"` to `openagent_progress` only. Do not combine or switch displays for the same invocation. Progress shows the actual Run prompt and attachments; do not send a separate prompt preview, fenced code block, or duplicate invocation data.
 
 1. Then call `openagent_progress` with trusted `agent_id` and `agent_name`, and the same `idempotency_key` and `locale` as the Run. Optional display fields must come only from trusted Agent metadata. When only an ID is available without a trusted name, use the original `agent_id` as the display identifier in `agent_name`, without claiming it is the Agent's actual name. Keep the same original ID in `openagent_run.agent_id`.
-2. Wait for the Host MCP Tool Result of `openagent_progress`. On an authentication failure, follow Runtime Sign-in and stop here. Otherwise call `openagent_run` once with the same `idempotency_key` and `locale`. Failure or timeout of `openagent_progress` affects only progress display unless authentication failed; still perform this one Run.
+2. Await this `openagent_progress` result. On authentication failure, follow Runtime Sign-in and stop. Otherwise, complete Browser Progress below if using browser mode, then call `openagent_run` once with the same `idempotency_key` and `locale`. Still perform this Run after progress failure, timeout, a missing link, or opening failure. Do not repeat progress or wait for page load, a handshake, or Socket readiness.
 3. `openagent_run` is the sole source of truth for Invocation state and business results. A progress-card failure does not change the Run, trigger a business retry, or cancel, roll back, or duplicate the Run.
 4. If the execution request is rejected before creating or recovering an Invocation, preserve the trusted rejection for result validation and failure handling. Do not call Run again in this turn.
 5. After the single `openagent_run` call completes, perform checkpoint cleanup before Result Validation and Delivery, preserving its original Tool Result. Only after this Run returns `isError=false` and `status=completed`, best-effort run `node <installed openagent-run-agent Skill>/scripts/cos_upload.cjs --forget-resource-id <resource_id>` for each local-file resource prepared in this request, using the authorization rules above. Keep the checkpoint when Run fails or its outcome remains unknown. Cleanup failure must not change the upload or Run result or trigger another grant request or upload; a missing checkpoint is not a reason to reupload. Then enter Result Validation and Delivery. Host pseudocode (expand helpers into authorized Tool calls):
@@ -189,6 +189,14 @@ When Hermes renders the progress card, it displays the exact `data.prompt` and `
        await best_effort_authorized_cleanup(local_upload_resource_ids)
    return result
    ```
+
+#### Browser Progress
+
+1. Apply Hermes Tool Result Mapping and require a successful current result. Accept only `view="agent_progress"`, `display_mode="browser"`, the Run's original `idempotency_key`, and a non-empty absolute HTTPS `browser_url`. Preserve `agent`, `status`, and Run arguments; never reconstruct fields from prose or previous results.
+2. Use the original URL only as a navigation argument or the target of a link labeled “Open OpenAgent progress page”, localized to `display_locale`. Do not rewrite it, add authentication parameters, or separately expose or log the URL or its credentials.
+3. In Hermes Desktop, use `desktop_preview`. If its schema is deferred, call `tool_describe(names=["desktop_preview"])` once; deferral does not mean unavailable. Call `desktop_preview(action="open", url=<original browser_url>, label="OpenAgent")` once, through Hermes's `tool_call` bridge when needed. Its documented pane beside the chat confirms visibility; no extra probe is needed.
+
+If the visible capability is unavailable, disconnected, fails, or times out, provide the validated link without reopening or claiming success. Without a valid link, retain the stage update. Do not inspect the page or substitute hidden browsers or shell commands. Keep the page open; selection-page cleanup does not apply. Page failure or closure does not change Invocation state.
 
 **Output:** The authoritative `openagent_run` Tool Result, or an execution state that remains unconfirmed.
 
