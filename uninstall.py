@@ -26,7 +26,8 @@ RELEASE_0_1_0_FILES = {
     "skills/openagent-first-task-router/references/result-validation-and-delivery.md",
     "skills/openagent-login/runtime-sign-in.md",
 }
-FILES = RELEASE_0_1_0_FILES | {"desktop_onboarding.py", "desktop-onboarding.js"}
+PRE_PLANNER_FILES = RELEASE_0_1_0_FILES | {"desktop_onboarding.py", "desktop-onboarding.js"}
+FILES = PRE_PLANNER_FILES | {"skills/openagent-first-task-router/references/plan-agent-discovery.md"}
 LEGACY_FILES = (RELEASE_0_1_0_FILES - {
     "INSTALL.en.md", "uninstall.py", "skills/openagent-first-task-router/references/result-validation-and-delivery.md",
     "skills/openagent-login/runtime-sign-in.md",
@@ -56,7 +57,7 @@ def check_plugin(target: Path) -> bool:
         data = json.loads(receipt.read_text(encoding="utf-8"))
         files = data["files"]
         if (data.get("format") != "openagent-hermes-install-v1" or not isinstance(files, dict)
-                or set(files) not in (LEGACY_FILES, RELEASE_0_1_0_FILES, FILES)):
+                or set(files) not in (LEGACY_FILES, RELEASE_0_1_0_FILES, PRE_PLANNER_FILES, FILES)):
             raise ValueError()
     except (KeyError, TypeError, ValueError):
         raise ValueError("安装回执无效或文件清单不符，停止卸载") from None

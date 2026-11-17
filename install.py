@@ -28,6 +28,7 @@ FILES = (
     "skills/openagent-run-agent/scripts/cos_upload.cjs",
     "skills/openagent-run-agent/scripts/cos_sdk.cjs.gz",
     "skills/openagent-run-agent/scripts/cos_sdk.lock.json",
+    "skills/openagent-first-task-router/references/plan-agent-discovery.md",
     "skills/openagent-first-task-router/references/result-validation-and-delivery.md",
     "skills/openagent-login/runtime-sign-in.md",
 )
